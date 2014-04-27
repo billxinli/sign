@@ -26,6 +26,7 @@ class TtcDataSource < DataSource
       "#{route}: in #{minutes}M @ #{prediction_time}"
     else
       "#{route}: N/A"
+      nil
     end
   end
 
