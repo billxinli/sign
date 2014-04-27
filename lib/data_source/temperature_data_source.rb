@@ -8,10 +8,16 @@ class TemperatureDataSource < DataSource
   end
 
   def get_data
-    weather   = self.class.get('/data/2.5/weather', query: @options)
-    high_temp = kelvin_to_celsius(weather['main']['temp_max'])
-    low_temp  = kelvin_to_celsius(weather['main']['temp_min'])
-    "H:#{high_temp.round(2)}C L:#{low_temp.round(2)}C"
+    weather = self.class.get('/data/2.5/weather', query: @options)
+    high_temp    = kelvin_to_celsius(weather['main']['temp_max'])
+    low_temp     = kelvin_to_celsius(weather['main']['temp_min'])
+    temp         = kelvin_to_celsius(weather['main']['temp'])
+    temperatures = [high_temp, low_temp, temp]
+    if false
+      "H:#{high_temp.round(1)}C L:#{low_temp.round(1)}C"
+    else
+      "#{(temperatures.reduce(:+).to_f / temperatures.size).round(1)}C"
+    end
   end
 
   private

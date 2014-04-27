@@ -14,23 +14,27 @@ class TtcDataSource < DataSource
                       'routeTag' => route })
     ttc = self.class.get('/publicXMLFeed', query: @options)
 
-
     predictions = ttc['body']['predictions']['direction']
 
     if predictions
-      predictions     =predictions.collect { |x| x['prediction'] }.flatten
+      predictions     = if predictions.is_a?(Hash)
+                          predictions['prediction']
+                        else
+                          predictions.collect { |x| x['prediction'] }.flatten
+                        end
       predictions     = predictions.sort! { |a, b| a['epochTime'] <=> b['epochTime'] }
       prediction      = predictions.first
       minutes         = prediction['minutes']
-      prediction_time = Time.at(prediction['epochTime'].to_f/1000).strftime('%I:%M%p')
-      "#{route}: in #{minutes}M @ #{prediction_time}"
+      prediction_time = Time.at(prediction['epochTime'].to_f/1000).strftime('%-I:%M%p')
+      "#{route} #{minutes} #{prediction_time}"[0..-2]
     else
-      "#{route}: N/A"
+      "#{route} N/A"
       nil
     end
   end
 
   def get_data
-    get_predictions_for(10210, 511)
+    [get_predictions_for(10210, 511),
+     get_predictions_for(10773, 509)].join('|')
   end
 end
