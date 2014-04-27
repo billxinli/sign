@@ -1,4 +1,4 @@
-require_relative 'data_source'
+require_relative '../data_source'
 
 class TemperatureDataSource < DataSource
   base_uri 'api.openweathermap.org'
