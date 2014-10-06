@@ -4,10 +4,10 @@ require 'json'
 class DataSource
   include HTTParty
 
-  def initialize
+  def initialize(options={})
   end
 
-  def get_data
+  def get_data(options={})
     'Override this'
   end
 end

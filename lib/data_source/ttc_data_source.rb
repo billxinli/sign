@@ -1,40 +1,41 @@
-require_relative '../data_source'
+require_relative './data_source'
 
 class TtcDataSource < DataSource
 
   base_uri 'webservices.nextbus.com/service'
 
-  def initialize(agency = 'ttc')
-    @options = { a: agency }
+  def initialize(options = {})
+    options = {agency: 'ttc'}.merge(options)
+
+    @options = { a: options[:agency] }
   end
 
-  def get_predictions_for(stop_id = '10210', route = '511')
-    @options.merge!({ 'command'  => 'predictions',
-                      'stopId'   => stop_id,
-                      'routeTag' => route })
+  def get_data(options = {})
+    options = {command: 'predictions', stopId: '10210', routeTag: '511'}.merge(options)
+
+    command = options[:command]
+    stopId = options[:stopId]
+    routeTag = options[:routeTag]
+
+    @options.merge!({command: command, stopId: stopId, routeTag: routeTag})
+
     ttc = self.class.get('/publicXMLFeed', query: @options)
 
     predictions = ttc['body']['predictions']['direction']
 
     if predictions
-      predictions     = if predictions.is_a?(Hash)
-                          predictions['prediction']
-                        else
-                          predictions.collect { |x| x['prediction'] }.flatten
-                        end
-      predictions     = predictions.sort! { |a, b| a['epochTime'] <=> b['epochTime'] }
-      prediction      = predictions.first
-      minutes         = prediction['minutes']
+      predictions = if predictions.is_a?(Hash)
+                      predictions['prediction']
+                    else
+                      predictions.collect { |x| x['prediction'] }.flatten
+                    end
+      predictions = predictions.sort! { |a, b| a['epochTime'] <=> b['epochTime'] }
+      prediction = predictions.first
+      minutes = prediction['minutes']
       prediction_time = Time.at(prediction['epochTime'].to_f/1000).strftime('%-I:%M%p')
-      "#{route} #{minutes} #{prediction_time}"[0..-2]
+      "#{routeTag} #{minutes} #{prediction_time}"[0..-2]
     else
-      "#{route} N/A"
-      nil
+      "#{routeTag} N/A"
     end
-  end
-
-  def get_data
-    [get_predictions_for(10210, 511),
-     get_predictions_for(10773, 509)].join('|')
   end
 end
